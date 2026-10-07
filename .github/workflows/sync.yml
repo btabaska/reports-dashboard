@@ -1,0 +1,61 @@
+name: Sync dashboard data
+
+on:
+  schedule:
+    # 10:00 UTC = 6:00 am Eastern (EDT) / 5:00 am (EST). Runs every day.
+    - cron: "0 10 * * *"
+  workflow_dispatch:
+    inputs:
+      full:
+        description: "Refetch every issue timeline (slower; use after changing settings)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: dashboard-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Pull projects, PRs and timelines
+        env:
+          GH_TOKEN: ${{ secrets.GH_PROJECTS_TOKEN }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::Repository secret GH_PROJECTS_TOKEN is not set (see README)."
+            exit 1
+          fi
+          python3 sync/sync.py ${{ inputs.full == true && '--full' || '' }}
+
+      - name: Commit data
+        run: |
+          git config user.name "dashboard-sync"
+          git config user.email "dashboard-sync@users.noreply.github.com"
+          git add data
+          if git diff --cached --quiet; then
+            echo "No data changes."
+          else
+            git commit -m "data: sync $(date -u +%Y-%m-%dT%H:%MZ)"
+            git pull --rebase origin "${GITHUB_REF_NAME}"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
+
+      - name: Summary
+        if: always()
+        run: |
+          if [ -f data/meta.json ]; then
+            {
+              echo "### Sync summary"
+              echo '```json'
+              cat data/meta.json
+              echo '```'
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi

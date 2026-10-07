@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reports Dashboard</title>
+<meta name="description" content="Sprint-by-sprint view of each direct report's GitHub work, synced nightly.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='1' y='8' width='3' height='7' rx='1' fill='%232563eb'/%3E%3Crect x='6.5' y='4' width='3' height='11' rx='1' fill='%232563eb'/%3E%3Crect x='12' y='1' width='3' height='14' rx='1' fill='%232563eb'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+
+<div id="loading" class="screen"><div class="card"><h1>Reports Dashboard</h1><p id="loadingMsg">Loading…</p></div></div>
+
+<div id="setup" class="screen hidden">
+  <div class="card">
+    <h1>Connect to your data repo</h1>
+    <p>The dashboard reads <code>data/latest.json</code> straight from your private GitHub repo. The token is stored only in this browser (localStorage) and is sent only to <code>api.github.com</code>.</p>
+    <div id="setupError" class="error hidden"></div>
+    <div class="field">
+      <label for="repoInput">Repository (owner/name)</label>
+      <input id="repoInput" type="text" placeholder="btabaska/reports-dashboard" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="field">
+      <label for="tokenInput">Fine-grained personal access token</label>
+      <input id="tokenInput" type="password" placeholder="github_pat_…" autocomplete="off">
+      <div class="hint">Repository access: only this repo. Permissions: Contents (read &amp; write), Actions (read &amp; write), Metadata (read). See the README.</div>
+    </div>
+    <div class="row">
+      <button id="connectBtn" class="btn primary">Connect</button>
+      <a class="small" href="?demo=1">Open the demo with sample data instead</a>
+    </div>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <header class="topbar">
+    <div class="brand">Reports Dashboard <span class="sub" id="quadLabel"></span></div>
+    <nav class="tabs" id="tabs">
+      <button data-view="overview" class="active">Overview</button>
+      <button data-view="person">People</button>
+      <button data-view="record">Trailing record</button>
+      <button data-view="admin">Admin</button>
+    </nav>
+    <div class="sync-pill" id="syncPill"></div>
+  </header>
+  <div class="sprintbar">
+    <div class="chips" id="sprintChips"></div>
+    <div class="progress" id="sprintProgress"></div>
+  </div>
+  <main>
+    <section id="view-overview" class="view"></section>
+    <section id="view-person" class="view hidden"></section>
+    <section id="view-record" class="view hidden"></section>
+    <section id="view-admin" class="view hidden"></section>
+  </main>
+</div>
+
+<script src="metrics.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

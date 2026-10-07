@@ -1,0 +1,49 @@
+{
+  "org": "HHS",
+  "quad_start": "2026-09-02",
+  "projects": [
+    {
+      "number": 13,
+      "name": "Simpler Grants.gov Product",
+      "canonical_sprints": true,
+      "repos": ["HHS/simpler-grants-gov"]
+    },
+    {
+      "number": 84,
+      "name": "Smarter Grants Management",
+      "canonical_sprints": false,
+      "repos": ["HHS/smarter-grants-management"]
+    }
+  ],
+  "fields": {
+    "status": "Status",
+    "sprint": "Sprint",
+    "points": "Story Points",
+    "track": "Track",
+    "workstream": "Workstream",
+    "priority": "Priority",
+    "deliverable": "Deliverable",
+    "actual_start": "Actual Start",
+    "actual_end": "Actual End"
+  },
+  "sprint_key_regex": "Sprint\\s+(\\d+\\.\\d+)",
+  "statuses": {
+    "done": ["Done"],
+    "in_progress": ["In Progress"],
+    "in_flight": ["In Progress", "In Review", "UAT", "QA", "Design Review"],
+    "blocked": ["Blocked"],
+    "ignored": ["Closed - OUTDATED", "Postponed", "Icebox"]
+  },
+  "flags": {
+    "quiet_working_days": 5,
+    "wip_threshold": 4,
+    "overload_ratio": 1.5,
+    "blocked_days": 2,
+    "stale_pr_days": 5,
+    "review_backlog_count": 3,
+    "review_backlog_days": 3,
+    "carryover_ratio": 0.5,
+    "stale_sync_hours": 36
+  },
+  "bots": ["github-actions[bot]", "renovate[bot]", "dependabot[bot]"]
+}
