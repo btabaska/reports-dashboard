@@ -1,11 +1,46 @@
 {
   "people": [
-    { "name": "Michael Slater", "login": "mike-slater", "since": "2026-09-02", "active": true, "notes": "" },
-    { "name": "Freddie Yebra", "login": "freddieyebra", "since": "2026-09-02", "active": true, "notes": "" },
-    { "name": "My Duong", "login": "myduong-navapbc", "since": "2026-09-02", "active": true, "notes": "" },
-    { "name": "Jakob Pederson", "login": "jakobpederson", "since": "2026-09-02", "active": true, "notes": "" },
-    { "name": "Erin Pattison", "login": "ErinPattisonNava", "since": "2026-09-02", "active": true, "notes": "" },
-    { "name": "Kenny Krug", "login": "kkrug", "since": "2026-09-02", "active": true, "notes": "" },
-    { "name": "Michael Sloan", "login": "msloan-nava", "since": "2026-09-02", "active": true, "notes": "Smarter Grants Management (project 84)" }
+    {
+      "name": "Michael Slater",
+      "login": "mike-slater",
+      "since": "2026-09-02",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "name": "Freddie Yebra",
+      "login": "freddieyebra",
+      "since": "2026-09-02",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "name": "My Duong",
+      "login": "myduong-navapbc",
+      "since": "2026-09-02",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "name": "Jakob Pederson",
+      "login": "jakobpederson",
+      "since": "2026-09-02",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "name": "Erin Pattison",
+      "login": "ErinPattisonNava",
+      "since": "2026-09-02",
+      "active": true,
+      "notes": ""
+    },
+    {
+      "name": "Kenny Krug",
+      "login": "kkrug",
+      "since": "2026-09-02",
+      "active": true,
+      "notes": ""
+    }
   ]
 }
