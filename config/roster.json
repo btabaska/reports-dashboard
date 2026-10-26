@@ -5,63 +5,72 @@
       "login": "mike-slater",
       "since": "2026-09-02",
       "active": true,
-      "notes": ""
+      "notes": "",
+      "team": "Apply"
     },
     {
       "name": "Freddie Yebra",
       "login": "freddieyebra",
       "since": "2026-09-02",
       "active": true,
-      "notes": ""
+      "notes": "",
+      "team": "Discovery & Ops"
     },
     {
       "name": "My Duong",
       "login": "myduong-navapbc",
       "since": "2026-09-02",
       "active": true,
-      "notes": ""
+      "notes": "",
+      "team": "Discovery & Ops"
     },
     {
       "name": "Jakob Pederson",
       "login": "jakobpederson",
       "since": "2026-09-02",
       "active": true,
-      "notes": ""
+      "notes": "",
+      "team": "Apply"
     },
     {
       "name": "Erin Pattison",
       "login": "ErinPattisonNava",
       "since": "2026-09-02",
       "active": true,
-      "notes": ""
+      "notes": "",
+      "team": "Apply"
     },
     {
       "name": "Kenny Krug",
       "login": "kkrug",
       "since": "2026-09-02",
       "active": true,
-      "notes": ""
+      "notes": "",
+      "team": "Apply"
     },
     {
       "name": "Bethany Alcamo",
       "login": "balcamo",
       "since": "2026-10-19",
       "active": true,
-      "notes": ""
+      "notes": "",
+      "team": "Discovery & Ops"
     },
     {
       "name": "Branford Harris",
       "login": "Afrothundr",
       "since": "2026-10-19",
       "active": true,
-      "notes": ""
+      "notes": "",
+      "team": "Discovery & Ops"
     },
     {
       "name": "Dan Hudlow",
       "login": "hudlow",
       "since": "2026-10-26",
       "active": true,
-      "notes": ""
+      "notes": "",
+      "team": "Discovery & Ops"
     }
   ]
 }
