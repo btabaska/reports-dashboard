@@ -150,7 +150,8 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 
 /* ---------- admin */
 .roster-table input[type="text"], .roster-table input[type="date"] { width: 100%; background: transparent; border: 1px solid transparent; border-radius: 6px; padding: 4px 6px; }
-.roster-table input:focus { background: var(--panel-2); border-color: var(--line); outline: none; }
+.roster-table select { background: transparent; border: 1px solid transparent; border-radius: 6px; padding: 4px 6px; }
+.roster-table select:focus, .roster-table input:focus { background: var(--panel-2); border-color: var(--line); outline: none; }
 .roster-table td { vertical-align: middle; }
 .thresholds { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
 .thresholds .field { margin: 0; }

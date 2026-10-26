@@ -108,6 +108,20 @@ assert.strictEqual(m.team.perSprint["7.1"].people, 2, "newbie excluded from 7.1 
 assert.deepStrictEqual(m.unrostered, [], "no unrostered humans");
 assert.strictEqual(m.progress.elapsedDays, 7);
 assert.strictEqual(m.sync.stale, false);
+// sprint teams
+const teamRoster = { people: roster.people.map((p) => ({ ...p, team: p.login === "bob" ? "Discovery & Ops" : p.login === "alice" ? "Apply" : "" })) };
+const tm = M.compute(latest, teamRoster, { ...settings, sprint_teams: ["Apply", "Discovery & Ops"] }, NOW);
+assert.deepStrictEqual(tm.teams.map((t) => t.name), ["Apply", "Discovery & Ops"]);
+assert.deepStrictEqual(tm.teams[0].members.map((x) => x.login), ["alice"], "only Alice on Apply");
+assert.deepStrictEqual(tm.teams[1].members.map((x) => x.login), ["bob"], "newbie has no team");
+for (const s of tm.sprints) {
+  const a = tm.teams[0].perSprint[s.key], b = tm.teams[1].perSprint[s.key], all = tm.team.perSprint[s.key];
+  assert.strictEqual(a.completedCount, tm.people.find((p) => p.login === "alice").perSprint[s.key].completedCount);
+  assert.strictEqual(b.reviewsCount, tm.people.find((p) => p.login === "bob").perSprint[s.key].reviewsCount);
+  assert.ok(a.completedPoints + b.completedPoints <= all.completedPoints, "teams never exceed the whole-team total");
+}
+assert.strictEqual(tm.teams[1].current.pendingReviews, 1, "bob's pending review rolls up to his team");
+assert.deepStrictEqual(m.teams, [], "no sprint_teams setting → no team roll-ups");
 // case-insensitive assignee matching
 assert.strictEqual(alice.itemCount, 5, "Alice matched case-insensitively");
 console.log("ALL METRICS TESTS PASSED");

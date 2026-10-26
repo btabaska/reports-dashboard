@@ -266,7 +266,7 @@
       }
       const projects = [...new Set(mine.map((f) => f.item.project))].sort();
       return {
-        login: p.login, name: p.name || p.login, since: p.since || null, active: p.active !== false, notes: p.notes || "",
+        login: p.login, name: p.name || p.login, since: p.since || null, active: p.active !== false, notes: p.notes || "", team: p.team || "",
         projects, perSprint, current: { inFlight, blocked, openPrs, pendingReviews, wip, activeDates: [...activeDates].sort(), lastActivity: lastActivity || null },
         trailingAvgPoints, trailingAvgItems, flags, itemCount: mine.length,
       };
@@ -275,25 +275,34 @@
     const models = people.map(personModel);
     const activeModels = models.filter((m) => m.active);
 
-    // ---- team roll-up
-    const team = { perSprint: {} };
-    for (const s of sprints) {
-      const rows = activeModels.map((m) => m.perSprint[s.key]).filter((r) => r && r.active);
-      team.perSprint[s.key] = {
-        key: s.key,
-        plannedCount: sum(rows, (r) => r.plannedCount), plannedPoints: sum(rows, (r) => r.plannedPoints),
-        completedCount: sum(rows, (r) => r.completedCount), completedPoints: sum(rows, (r) => r.completedPoints),
-        carriedCount: sum(rows, (r) => r.carriedCount), notFinishedCount: sum(rows, (r) => r.notFinished.length),
-        prsMerged: sum(rows, (r) => r.prsMerged.length), reviewsCount: sum(rows, (r) => r.reviewsCount),
-        cycleMedianDays: median(rows.flatMap((r) => r.completed.map((f) => f.cycleDays).filter((x) => x != null))),
-        people: rows.length,
+    // ---- team roll-up (whole roster, and each sprint team from roster.team)
+    function rollup(members) {
+      const out = { perSprint: {} };
+      for (const s of sprints) {
+        const rows = members.map((m) => m.perSprint[s.key]).filter((r) => r && r.active);
+        out.perSprint[s.key] = {
+          key: s.key,
+          plannedCount: sum(rows, (r) => r.plannedCount), plannedPoints: sum(rows, (r) => r.plannedPoints),
+          completedCount: sum(rows, (r) => r.completedCount), completedPoints: sum(rows, (r) => r.completedPoints),
+          carriedCount: sum(rows, (r) => r.carriedCount), notFinishedCount: sum(rows, (r) => r.notFinished.length),
+          prsMerged: sum(rows, (r) => r.prsMerged.length), reviewsCount: sum(rows, (r) => r.reviewsCount),
+          cycleMedianDays: median(rows.flatMap((r) => r.completed.map((f) => f.cycleDays).filter((x) => x != null))),
+          people: rows.length,
+        };
+      }
+      out.current = {
+        wip: sum(members, (m) => m.current.wip), blocked: sum(members, (m) => m.current.blocked.length),
+        openPrs: sum(members, (m) => m.current.openPrs.length), pendingReviews: sum(members, (m) => m.current.pendingReviews.length),
+        flags: members.flatMap((m) => m.flags.map((f) => ({ ...f, login: m.login, name: m.name }))),
       };
+      return out;
     }
-    team.current = {
-      wip: sum(activeModels, (m) => m.current.wip), blocked: sum(activeModels, (m) => m.current.blocked.length),
-      openPrs: sum(activeModels, (m) => m.current.openPrs.length), pendingReviews: sum(activeModels, (m) => m.current.pendingReviews.length),
-      flags: activeModels.flatMap((m) => m.flags.map((f) => ({ ...f, login: m.login, name: m.name }))),
-    };
+    const team = rollup(activeModels);
+    const teamNames = settings.sprint_teams || [];
+    const teams = teamNames.map((name) => {
+      const members = activeModels.filter((m) => m.team === name);
+      return { name, members: members.map((m) => ({ login: m.login, name: m.name })), ...rollup(members) };
+    });
     let progress = null;
     if (currentSprint) {
       const total = (dayEnd(currentSprint.end) - dayStart(currentSprint.start)) / DAY;
@@ -322,7 +331,7 @@
     const generatedAt = ts(latest.meta && latest.meta.generated_at);
     const staleHours = generatedAt ? (Date.now() - generatedAt) / HOUR : null;
     return {
-      now, sprints, sprintsAll, currentSprint, pastSprints, progress, people: models, team, unrostered,
+      now, sprints, sprintsAll, currentSprint, pastSprints, progress, people: models, team, teams, unrostered,
       sync: { generatedAt, staleHours, stale: staleHours != null && staleHours > (F.stale_sync_hours || 36), meta: latest.meta || {} },
     };
   }

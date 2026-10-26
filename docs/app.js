@@ -7,6 +7,8 @@
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const DAY = 86400000, HOUR = 3600000;
   const LS_KEY = "reports-dashboard.cfg";
+  const DEFAULT_SPRINT_TEAMS = ["Apply", "Discovery & Ops"];
+  const TEAM_COLORS = ["#2563eb", "#f59e0b"];
   const PALETTE = ["#2563eb", "#16a34a", "#f59e0b", "#dc2626", "#7c3aed", "#0891b2", "#db2777", "#65a30d", "#ea580c", "#475569", "#0d9488", "#9333ea"];
 
   const state = {
@@ -208,6 +210,7 @@
   }
   function compute() {
     if (!state.latest) { state.model = null; return; }
+    if (!Array.isArray(state.settings.sprint_teams)) state.settings.sprint_teams = DEFAULT_SPRINT_TEAMS.slice();
     state.model = Metrics.compute(state.latest, state.roster, state.settings);
     const m = state.model;
     if (!state.sprintKey || !m.sprints.some((s) => s.key === state.sprintKey)) state.sprintKey = m.currentSprint ? m.currentSprint.key : (m.sprints[m.sprints.length - 1] || {}).key;
@@ -320,6 +323,9 @@
           ${byPerson.size ? `<div class="attn">${[...byPerson.entries()].map(([login, fs]) => `<div class="attn-row"><div class="who"><a href="#" data-person="${esc(login)}">${esc(fs[0].name)}</a></div><div>${fs.map((f) => `<div><span class="flag ${esc(f.level)}">${esc(flagLabel(f))}</span> <span class="small">${f.url ? `<a href="${esc(f.url)}" target="_blank" rel="noopener">${esc(f.text)}</a>` : esc(f.text)}</span></div>`).join("")}</div></div>`).join("")}</div>` : `<p class="empty">Nothing flagged. Thresholds are in Admin.</p>`}
         </div>
       </div>
+      ${m.teams.length ? `<div class="section-title">Sprint teams · ${esc(sprintLabel(key))}</div>
+      <div class="grid cols-2">${m.teams.map((tm) => teamCard(tm, key, isCurrent)).join("")}</div>
+      <div class="card" style="margin-top:14px"><h2>Sprint teams: completed points and items, by sprint</h2><div class="chart-wrap"><canvas id="chTeams"></canvas></div></div>` : ""}
       <div class="section-title">People · ${esc(sprintLabel(key))}</div>
       <div class="grid cards">${people.map((p) => personCard(p, key, isCurrent)).join("")}</div>
       <div class="grid cols-2" style="margin-top:14px">
@@ -342,6 +348,16 @@
       data: { labels, datasets: people.map((p) => ({ label: p.name, data: m.sprints.map((s) => p.perSprint[s.key].active ? p.perSprint[s.key].reviewsCount : null), backgroundColor: personColor(p.login), stack: "a" })) },
       options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } }, plugins: { legend: { position: "bottom" } } },
     });
+    if (m.teams.length) chart($("#chTeams"), {
+      data: {
+        labels,
+        datasets: m.teams.flatMap((tm, i) => [
+          { type: "bar", label: `${tm.name} · points`, data: m.sprints.map((s) => tm.perSprint[s.key].completedPoints), backgroundColor: TEAM_COLORS[i % TEAM_COLORS.length], yAxisID: "y" },
+          { type: "line", label: `${tm.name} · items`, data: m.sprints.map((s) => tm.perSprint[s.key].completedCount), borderColor: TEAM_COLORS[i % TEAM_COLORS.length], backgroundColor: TEAM_COLORS[i % TEAM_COLORS.length], borderDash: [4, 3], yAxisID: "y2", cubicInterpolationMode: "monotone" },
+        ]),
+      },
+      options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, position: "left", title: { display: true, text: "points" } }, y2: { beginAtZero: true, position: "right", grid: { drawOnChartArea: false }, title: { display: true, text: "items" } } }, plugins: { legend: { position: "bottom" } } },
+    });
     chart($("#chTeam"), {
       data: {
         labels,
@@ -353,6 +369,24 @@
       },
       options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, position: "left" }, y2: { beginAtZero: true, position: "right", grid: { drawOnChartArea: false } } }, plugins: { legend: { position: "bottom" } } },
     });
+  }
+  function teamCard(tm, key, isCurrent) {
+    const t = tm.perSprint[key] || {};
+    const kpis = [
+      { v: t.completedCount, s: `${fmt.num(t.completedPoints)} pts`, l: "Completed" },
+      { v: t.plannedCount, s: `${fmt.num(t.plannedPoints)} pts`, l: isCurrent ? "Planned this sprint" : "Planned" },
+      isCurrent ? { v: tm.current.wip, l: "In flight now", d: `${tm.current.blocked} blocked` } : { v: t.notFinishedCount, l: "Not finished", d: `${t.carriedCount} carried over` },
+      { v: t.prsMerged, l: "PRs merged" },
+      { v: t.reviewsCount, l: "Reviews given" },
+      { v: fmt.days(t.cycleMedianDays), l: "Median cycle time", d: "In Progress → Done" },
+      { v: tm.current.openPrs, l: "Open PRs now", d: `${tm.current.pendingReviews} reviews waiting` },
+    ];
+    return `<div class="card">
+      <h2>${esc(tm.name)} · ${tm.members.length} ${tm.members.length === 1 ? "person" : "people"}</h2>
+      ${tm.members.length ? `<div class="kpis">${kpis.map((k) => `<div class="kpi"><div class="v">${esc(fmt.num(k.v))}${k.s ? `<small>${esc(k.s)}</small>` : ""}</div><div class="l">${esc(k.l)}</div>${k.d ? `<div class="d">${esc(k.d)}</div>` : ""}</div>`).join("")}</div>
+      <p class="small muted" style="margin:10px 0 0">${tm.members.map((p) => `<a href="#" data-person="${esc(p.login)}">${esc(p.name)}</a>`).join(", ")}</p>`
+      : `<p class="empty">No one on this team yet. Assign people in Admin → Roster.</p>`}
+    </div>`;
   }
   function personCard(p, key, isCurrent) {
     const r = p.perSprint[key];
@@ -556,7 +590,7 @@
       </div>
       <div class="card" style="margin-top:14px">
         <div class="row spread"><h2>Roster</h2><div class="row"><button class="btn small" id="addPersonBtn">+ Add person</button><button class="btn primary small" id="saveRosterBtn" ${state.demo ? "disabled" : ""}>Save roster to repo</button></div></div>
-        <div class="tbl-wrap" style="max-height:none"><table class="roster-table"><thead><tr><th>Name</th><th>GitHub handle</th><th>On team since</th><th>Active</th><th>Notes</th><th></th></tr></thead><tbody id="rosterBody"></tbody></table></div>
+        <div class="tbl-wrap" style="max-height:none"><table class="roster-table"><thead><tr><th>Name</th><th>GitHub handle</th><th>On team since</th><th>Sprint team</th><th>Active</th><th>Notes</th><th></th></tr></thead><tbody id="rosterBody"></tbody></table></div>
         ${unrostered.length ? `<div class="section-title">Seen in the data but not on the roster</div><div class="chips pills" id="unrostered">${unrostered.map((u) => `<button class="chip" data-login="${esc(u.login)}" title="${esc(u.items)} items, ${esc(u.prs)} PRs">+ ${esc(u.login)} <span class="faint">(${esc(u.items)}i · ${esc(u.prs)}pr)</span></button>`).join("")}</div>` : ""}
         <p class="faint small" style="margin:10px 0 0">Metrics before a person's start date are shown as "—". Removing someone deletes their row only; the synced data keeps everyone, so adding them back restores history. People assigned together on one item are both credited.</p>
       </div>
@@ -579,10 +613,10 @@
         </details>
       </div>`;
     renderRosterRows();
-    $("#addPersonBtn").addEventListener("click", () => { state.roster.people.push({ name: "", login: "", since: new Date().toISOString().slice(0, 10), active: true, notes: "" }); state.dirtyRoster = true; renderRosterRows(); });
+    $("#addPersonBtn").addEventListener("click", () => { state.roster.people.push({ name: "", login: "", since: new Date().toISOString().slice(0, 10), team: "", active: true, notes: "" }); state.dirtyRoster = true; renderRosterRows(); });
     $("#saveRosterBtn").addEventListener("click", saveRoster);
     $("#saveSettingsBtn").addEventListener("click", saveSettings);
-    $$("#unrostered .chip").forEach((b) => b.addEventListener("click", () => { state.roster.people.push({ name: b.dataset.login, login: b.dataset.login, since: state.settings.quad_start, active: true, notes: "" }); state.dirtyRoster = true; recomputeFromRoster(); renderAdmin(); }));
+    $$("#unrostered .chip").forEach((b) => b.addEventListener("click", () => { state.roster.people.push({ name: b.dataset.login, login: b.dataset.login, since: state.settings.quad_start, team: "", active: true, notes: "" }); state.dirtyRoster = true; recomputeFromRoster(); renderAdmin(); }));
     $$("[data-flag]").forEach((inp) => inp.addEventListener("change", () => { const v = parseFloat(inp.value); if (!isNaN(v)) { state.settings.flags[inp.dataset.flag] = v; compute(); } }));
     $("#runSyncBtn").addEventListener("click", () => runSync(false));
     $("#runFullBtn").addEventListener("click", () => runSync(true));
@@ -595,10 +629,11 @@
       <td><input type="text" data-i="${i}" data-k="name" value="${esc(p.name)}" placeholder="Full name"></td>
       <td><input type="text" data-i="${i}" data-k="login" value="${esc(p.login)}" placeholder="github-handle" class="mono"></td>
       <td><input type="date" data-i="${i}" data-k="since" value="${esc(p.since || "")}"></td>
+      <td><select data-i="${i}" data-k="team"><option value="">— none —</option>${state.settings.sprint_teams.map((t) => `<option value="${esc(t)}" ${p.team === t ? "selected" : ""}>${esc(t)}</option>`).join("")}${p.team && !state.settings.sprint_teams.includes(p.team) ? `<option value="${esc(p.team)}" selected>${esc(p.team)} (unknown)</option>` : ""}</select></td>
       <td><input type="checkbox" data-i="${i}" data-k="active" ${p.active !== false ? "checked" : ""}></td>
       <td><input type="text" data-i="${i}" data-k="notes" value="${esc(p.notes || "")}" placeholder="optional"></td>
       <td><button class="btn small danger" data-remove="${i}">Remove</button></td></tr>`).join("");
-    $$("input", body).forEach((inp) => inp.addEventListener("change", () => {
+    $$("input, select", body).forEach((inp) => inp.addEventListener("change", () => {
       const p = state.roster.people[+inp.dataset.i];
       p[inp.dataset.k] = inp.type === "checkbox" ? inp.checked : inp.value.trim();
       state.dirtyRoster = true;

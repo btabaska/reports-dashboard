@@ -45,5 +45,6 @@
     "carryover_ratio": 0.5,
     "stale_sync_hours": 36
   },
+  "sprint_teams": ["Apply", "Discovery & Ops"],
   "bots": ["github-actions[bot]", "renovate[bot]", "dependabot[bot]"]
 }
