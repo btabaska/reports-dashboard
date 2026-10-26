@@ -55,6 +55,13 @@
       "since": "2026-10-19",
       "active": true,
       "notes": ""
+    },
+    {
+      "name": "Dan Hudlow",
+      "login": "hudlow",
+      "since": "2026-10-26",
+      "active": true,
+      "notes": ""
     }
   ]
 }
