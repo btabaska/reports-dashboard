@@ -1,13 +1,13 @@
 {
-  "generated_at": "2026-10-31T15:45:02.223851Z",
-  "last_success_at": "2026-10-31T15:45:02.223851Z",
-  "duration_s": 253.5,
-  "snapshot_date": "2026-10-31",
-  "snapshot_count": 25,
+  "generated_at": "2026-11-01T16:46:22.068856Z",
+  "last_success_at": "2026-11-01T16:46:22.068856Z",
+  "duration_s": 259.8,
+  "snapshot_date": "2026-11-01",
+  "snapshot_count": 26,
   "first_snapshot": "2026-10-07",
-  "graphql_calls": 98,
-  "graphql_cost": 190,
-  "rate_remaining": 4851,
+  "graphql_calls": 97,
+  "graphql_cost": 189,
+  "rate_remaining": 4869,
   "items": 1684,
   "prs": 331,
   "history_events": 8699,
@@ -17,6 +17,6 @@
     "project 84: items from repos not in settings (PRs there are not synced): ['HHS/simpler-grants-gov']"
   ],
   "repository": "btabaska/reports-dashboard",
-  "run_id": "41215989550",
+  "run_id": "41327652117",
   "schema_version": 1
 }
